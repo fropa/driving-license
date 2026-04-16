@@ -123,6 +123,8 @@ html[data-theme="light"] .btn-primary{color:#fff}
 .btn-danger{background:transparent;color:var(--red);border-color:var(--red)}
 .btn-danger:hover{background:var(--red-dim);filter:none}
 .btn-success{background:var(--green);color:#fff}
+.btn-struggling{background:var(--red-dim);color:var(--red);border:1.5px solid var(--red)}
+.btn-struggling:hover{background:var(--red);color:#fff;filter:none}
 .btn-wide{width:100%;padding:14px 22px;font-size:1rem}
 .btn:disabled{opacity:.4;pointer-events:none}
 
@@ -445,6 +447,7 @@ html[data-theme="light"] .ch-pill.on{color:#fff}
     </div>
 
     <button class="btn btn-primary btn-wide" id="btn-start">▶ Start Session</button>
+    <button class="btn btn-struggling btn-wide" id="btn-struggling" style="display:none;margin-top:10px">⚡ Train Struggling Tickets</button>
 
     <div class="card" id="weak-card" style="margin-top:18px;display:none">
       <div class="section-label" style="margin-bottom:14px">⚠ Chapters needing attention</div>
@@ -639,6 +642,19 @@ function cardDifficulty(id) {
 //  SESSION SELECTION
 // ═══════════════════════════════════════════════════════════
 let chapFilter = new Set();
+
+function strugglingTickets() {
+  return TICKETS.filter(t => {
+    const p = prog[String(t.id)];
+    if (!p || p.attempts < 2) return false;
+    return (1 - p.correct / p.attempts) >= 0.4 && p.streak < 3;
+  }).sort((a, b) => {
+    // worst error rate first
+    const ea = 1 - (prog[String(a.id)].correct / prog[String(a.id)].attempts);
+    const eb = 1 - (prog[String(b.id)].correct / prog[String(b.id)].attempts);
+    return eb - ea;
+  });
+}
 
 function selectTickets() {
   const now = Date.now();
@@ -835,6 +851,7 @@ function renderHome() {
   renderStats(stats);
   renderChapters();
   renderWeak(stats);
+  renderStrugglingBtn();
   showScreen('screen-home');
 }
 
@@ -849,6 +866,17 @@ function renderStats(stats) {
     <div class="stat-box"><div class="num" style="color:var(--red)">${stats?.struggling??0}</div><div class="lbl">Struggling</div></div>
     <div class="stat-box"><div class="num" style="color:var(--green)">${mastered}</div><div class="lbl">Mastered</div></div>
   `;
+}
+
+function renderStrugglingBtn() {
+  const btn = document.getElementById('btn-struggling');
+  const list = strugglingTickets();
+  if (list.length > 0) {
+    btn.style.display = 'block';
+    btn.textContent = `⚡ Train Struggling — ${list.length} ticket${list.length > 1 ? 's' : ''}`;
+  } else {
+    btn.style.display = 'none';
+  }
 }
 
 function renderChapters() {
@@ -930,12 +958,18 @@ function renderWeak(stats) {
 // ═══════════════════════════════════════════════════════════
 //  SESSION
 // ═══════════════════════════════════════════════════════════
-function startSession(tickets) {
+function startSession(tickets, label) {
   S = makeSession(tickets);
   const lbl = document.getElementById('sess-chapter-label');
-  if      (chapFilter.size === 0) lbl.textContent = 'All chapters — smart order';
-  else if (chapFilter.size === 1) lbl.textContent = `Chapter ${[...chapFilter][0]}: ${chTitle([...chapFilter][0])}`;
-  else                            lbl.textContent = `${chapFilter.size} chapters selected`;
+  if (label) {
+    lbl.textContent = label;
+  } else if (chapFilter.size === 0) {
+    lbl.textContent = 'All chapters — smart order';
+  } else if (chapFilter.size === 1) {
+    lbl.textContent = `Chapter ${[...chapFilter][0]}: ${chTitle([...chapFilter][0])}`;
+  } else {
+    lbl.textContent = `${chapFilter.size} chapters selected`;
+  }
   showScreen('screen-session');
   renderCard();
 }
@@ -1031,6 +1065,12 @@ document.getElementById('btn-next').onclick = () => {
   if (!lastOk) {
     const pos = st.wrongCount >= 3 ? 1 : st.wrongCount >= 2 ? 2 : 3;
     S.queue.splice(Math.min(pos, S.queue.length), 0, t);
+  } else {
+    // Graduated — mastered this ticket right now
+    const p = prog[String(t.id)];
+    if (p && p.streak >= 3) {
+      toast(`✅ Mastered! Ticket removed from struggling.`, 2000);
+    }
   }
 
   S.cardsProcessed++;
@@ -1106,9 +1146,14 @@ async function endSession() {
 // ═══════════════════════════════════════════════════════════
 //  BUTTON WIRING
 // ═══════════════════════════════════════════════════════════
-document.getElementById('btn-start').onclick = () => startSession(selectTickets());
-document.getElementById('btn-new').onclick   = () => startSession(selectTickets());
-document.getElementById('btn-home').onclick  = () => renderHome();
+document.getElementById('btn-start').onclick     = () => startSession(selectTickets());
+document.getElementById('btn-new').onclick       = () => startSession(selectTickets());
+document.getElementById('btn-home').onclick      = () => renderHome();
+document.getElementById('btn-struggling').onclick = () => {
+  const list = strugglingTickets();
+  if (!list.length) { toast('No struggling tickets right now!'); return; }
+  startSession(list, `⚡ Struggling Practice — ${list.length} tickets`);
+};
 
 document.getElementById('btn-logout').onclick = () => {
   currentUser = null; prog = {}; pendingSync = {};

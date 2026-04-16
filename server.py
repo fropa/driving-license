@@ -47,7 +47,8 @@ def _compute_stats(d: dict) -> dict:
     mastered   = sum(1 for v in prog.values() if v.get("streak", 0) >= 3)
     struggling = sum(1 for v in prog.values()
                      if v.get("attempts", 0) >= 2
-                     and v.get("correct", 0) / v["attempts"] < 0.6)
+                     and v.get("correct", 0) / v["attempts"] < 0.6
+                     and v.get("streak", 0) < 3)
     due        = sum(1 for v in prog.values()
                      if v.get("attempts", 0) > 0
                      and v.get("lastSeen", 0) + v.get("interval", 0) * DAY_MS <= now_ms)
