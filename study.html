@@ -152,6 +152,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .q-chapter-tag{font-size:.72rem;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .difficulty-tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px}
+.q-stats-tag{font-size:.72rem;color:var(--sub);padding:2px 9px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);margin-left:auto}
 .diff-easy{background:var(--green-dim);color:var(--green)}
 .diff-medium{background:var(--yellow-dim);color:var(--yellow)}
 .diff-hard{background:var(--red-dim);color:var(--red)}
@@ -352,6 +353,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       <div class="q-meta">
         <span class="q-chapter-tag" id="q-chapter"></span>
         <span class="difficulty-tag" id="q-difficulty"></span>
+        <span class="q-stats-tag" id="q-stats" style="display:none"></span>
       </div>
       <img id="q-img" class="q-img" alt="" onerror="this.style.display='none'">
       <div class="q-text" id="q-text"></div>
@@ -389,6 +391,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
     </div>
     <div class="sum-actions">
       <button class="btn btn-ghost"   id="btn-home">🏠 Home</button>
+      <button class="btn btn-danger"  id="btn-retry-wrongs" style="display:none">🔁 Retry Wrongs</button>
       <button class="btn btn-success" id="btn-new">▶ New Session</button>
     </div>
   </div>
@@ -581,6 +584,7 @@ function examTickets() {
 // ══════════════════════════════════════════════════════
 let S             = null;
 let examInterval  = null;
+let lastStruggled = [];
 
 function makeSession(tickets, isExam) {
   const states = new Map();
@@ -957,6 +961,17 @@ function renderCard() {
   diffEl.textContent = diff.label;
   diffEl.className   = `difficulty-tag ${diff.cls}`;
 
+  // per-ticket stats
+  const statsEl = document.getElementById('q-stats');
+  const tp_data = prog[String(t.id)];
+  if (tp_data && tp_data.attempts > 0) {
+    const pct = Math.round(tp_data.correct / tp_data.attempts * 100);
+    statsEl.textContent = `Seen ${tp_data.attempts}× · ${pct}% ✓`;
+    statsEl.style.display = '';
+  } else {
+    statsEl.style.display = 'none';
+  }
+
   // image
   const img = document.getElementById('q-img');
   if (t.image_url) { img.src=t.image_url; img.style.display='block'; }
@@ -1064,6 +1079,7 @@ async function endSession() {
   const needed     = total - firstTryOk;
   const pct        = Math.round(firstTryOk / total * 100);
   const struggled  = S.deck.filter(t=>S.states.get(t.id).wrongCount>0);
+  lastStruggled = struggled;
 
   let emoji, title;
   if      (pct===100) { emoji='🏆'; title='Perfect! Zero mistakes.'; }
@@ -1120,6 +1136,14 @@ async function endSession() {
     const data = await apiPost('api/login', {name: currentUser.name});
     currentUser = {...currentUser, stats: data.stats, recent_sessions: data.recent_sessions, is_new: false};
   } catch(e) {}
+
+  const retryBtn = document.getElementById('btn-retry-wrongs');
+  if (struggled.length > 0) {
+    retryBtn.textContent = `🔁 Retry Wrongs (${struggled.length})`;
+    retryBtn.style.display = '';
+  } else {
+    retryBtn.style.display = 'none';
+  }
 
   showScreen('screen-summary');
 }
@@ -1191,6 +1215,10 @@ document.addEventListener('keydown', e => {
 document.getElementById('btn-start').onclick = () => startSession(selectTickets());
 document.getElementById('btn-new').onclick   = () => startSession(selectTickets());
 document.getElementById('btn-home').onclick  = () => renderHome();
+document.getElementById('btn-retry-wrongs').onclick = () => {
+  if (!lastStruggled.length) { toast('No wrong tickets to retry!'); return; }
+  startSession(lastStruggled, `🔁 Retry Wrongs — ${lastStruggled.length} ticket${lastStruggled.length===1?'':'s'}`);
+};
 
 document.getElementById('btn-sess-home').onclick = async () => {
   stopExamTimer();
