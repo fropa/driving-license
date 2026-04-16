@@ -468,7 +468,10 @@ html[data-theme="light"] .ch-pill.on{color:#fff}
         <div class="sess-label" id="sess-label">0 left</div>
         <div class="sess-chapter" id="sess-chapter-label"></div>
       </div>
-      <div class="sess-dots" id="sess-dots"></div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="sess-dots" id="sess-dots"></div>
+        <button class="btn btn-ghost" id="btn-sess-home" style="padding:5px 10px;font-size:.8rem;color:var(--sub)">🏠</button>
+      </div>
     </div>
     <div class="progress-rail"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
 
@@ -1146,6 +1149,11 @@ async function endSession() {
 // ═══════════════════════════════════════════════════════════
 //  BUTTON WIRING
 // ═══════════════════════════════════════════════════════════
+document.getElementById('btn-sess-home').onclick = async () => {
+  await flushProgress();
+  renderHome();
+};
+
 document.getElementById('btn-start').onclick     = () => startSession(selectTickets());
 document.getElementById('btn-new').onclick       = () => startSession(selectTickets());
 document.getElementById('btn-home').onclick      = () => renderHome();
