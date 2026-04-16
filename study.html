@@ -229,6 +229,8 @@ html[data-theme="light"] .btn-primary{color:#fff}
 .ch-pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
 .ch-pill.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
 html[data-theme="light"] .ch-pill.on{color:#fff}
+.ch-pill.mastered{border-color:var(--green);color:var(--green);background:var(--green-dim)}
+.ch-pill.mastered.on{background:var(--green);color:#fff;border-color:var(--green)}
 
 .weak-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
 .weak-row:last-child{border:none}
@@ -861,16 +863,25 @@ function renderChapters() {
     const chTickets = TICKETS.filter(t => t.chapter_id === ch.chapter_id);
     if (!chTickets.length) return;
     const seen = chTickets.filter(t => prog[String(t.id)]?.attempts > 0);
-    let label  = `${ch.chapter_id}. ${ch.chapter_title} (${chTickets.length})`;
-    if (seen.length > 0) {
+
+    const allMastered = seen.length === chTickets.length &&
+      chTickets.every(t => (prog[String(t.id)]?.streak || 0) >= 3);
+
+    let label = `${ch.chapter_id}. ${ch.chapter_title} (${chTickets.length})`;
+    if (allMastered) {
+      label += ' ✅';
+    } else if (seen.length > 0) {
       const errRate = seen.reduce((s,t) => s + (1 - (prog[String(t.id)]?.correct||0)/(prog[String(t.id)]?.attempts||1)), 0) / seen.length;
       label += errRate > 0.4 ? ' 🔴' : errRate > 0.2 ? ' 🟡' : ' 🟢';
     }
-    grid.appendChild(mkPill(label, chapFilter.has(ch.chapter_id), false, () => {
+
+    const pill = mkPill(label, chapFilter.has(ch.chapter_id), false, () => {
       if (chapFilter.has(ch.chapter_id)) chapFilter.delete(ch.chapter_id);
       else chapFilter.add(ch.chapter_id);
       renderChapters();
-    }));
+    });
+    if (allMastered) pill.classList.add('mastered');
+    grid.appendChild(pill);
   });
 
   const selLabel = document.getElementById('ch-selection-label');
@@ -993,7 +1004,7 @@ function handleAnswer(clicked) {
   const quality = !ok ? 0 : st.firstTryOk && st.wrongCount === 0 ? 5 : 3;
   sm2Update(t.id, quality, t.chapter_id);
 
-  if (Object.keys(pendingSync).length >= 5) flushProgress();
+  flushProgress();
 
   if (t.hint) {
     const hb = document.getElementById('hint-box');
@@ -1147,6 +1158,22 @@ async function init() {
     document.getElementById('screen-loading').style.flexDirection='column';
   }
 }
+
+// Flush progress when tab is hidden or closed
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') flushProgress();
+});
+
+// Last-resort flush on page close using keepalive fetch
+window.addEventListener('beforeunload', () => {
+  if (!currentUser || !Object.keys(pendingSync).length) return;
+  fetch('api/progress', {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({name: currentUser.name, updates: pendingSync}),
+    keepalive: true,
+  });
+});
 
 init();
 </script>
