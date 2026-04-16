@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>grU Trainer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="grU Trainer">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -457,6 +464,7 @@ let currentUser  = null;
 let prog         = {};
 let bookmarks    = new Set();
 let pendingSync  = {};
+let isOffline    = false;
 
 function setSyncStatus(state) {
   const dot = document.getElementById('sync-indicator');
@@ -476,18 +484,47 @@ async function apiPut(path, body) {
   return r.json();
 }
 
+// ── OFFLINE HELPERS ──
+function cacheProgressLocally() {
+  if (!currentUser) return;
+  try {
+    localStorage.setItem(`gru-offline-${currentUser.name}`,
+      JSON.stringify({ progress: prog, bookmarks: [...bookmarks] }));
+  } catch(e) {}
+}
+function loadCachedUser(name) {
+  try {
+    const raw = localStorage.getItem(`gru-offline-${name}`);
+    return raw ? JSON.parse(raw) : null;
+  } catch(e) { return null; }
+}
+function getCachedUserNames() {
+  const names = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k?.startsWith('gru-offline-')) names.push(k.slice('gru-offline-'.length));
+  }
+  return names;
+}
+
 async function flushProgress() {
   if (!currentUser || !Object.keys(pendingSync).length) return;
   setSyncStatus('syncing');
   try {
     await apiPut('api/progress', {name: currentUser.name, updates: pendingSync});
     pendingSync = {};
+    isOffline = false;
     setSyncStatus('ok');
-  } catch(e) { setSyncStatus('error'); }
+  } catch(e) {
+    isOffline = true;
+    setSyncStatus('error');
+  }
+  cacheProgressLocally();
 }
 
 async function saveSessionToServer(summary) {
   await flushProgress();
+  cacheProgressLocally(); // always persist locally, even if server sync failed
   try { await apiPost('api/session', {name: currentUser.name, summary}); } catch(e) {}
 }
 
@@ -668,12 +705,13 @@ function escHtml(s) {
 // ══════════════════════════════════════════════════════
 async function renderLogin() {
   showScreen('screen-login');
+  const list = document.getElementById('user-list');
+  const div  = document.getElementById('users-divider');
   try {
     const users = await (await fetch('api/users')).json();
-    const list  = document.getElementById('user-list');
-    const div   = document.getElementById('users-divider');
     if (users.length > 0) {
       div.style.display = 'block';
+      div.textContent = 'or pick your profile';
       list.innerHTML = users.map(u => `
         <div class="user-card" onclick="loginAs('${escHtml(u.name)}')">
           <div class="user-avatar">👤</div>
@@ -689,7 +727,23 @@ async function renderLogin() {
         </div>
       `).join('');
     }
-  } catch(e) {}
+  } catch(e) {
+    // Offline — show locally cached profiles
+    const names = getCachedUserNames();
+    if (names.length) {
+      div.style.display = 'block';
+      div.textContent = '📴 Offline — cached profiles';
+      list.innerHTML = names.map(n => `
+        <div class="user-card" onclick="loginAs('${escHtml(n)}')">
+          <div class="user-avatar">👤</div>
+          <div class="user-info">
+            <div class="user-name">${escHtml(n)}</div>
+            <div class="user-meta">Offline mode · local progress</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  }
 }
 
 async function loginAs(name) {
@@ -701,10 +755,24 @@ async function loginAs(name) {
     prog        = data.progress  || {};
     bookmarks   = new Set(data.bookmarks || []);
     pendingSync = {};
+    isOffline   = false;
+    cacheProgressLocally();
     renderHome();
   } catch(e) {
-    toast('Could not connect to server.');
-    showScreen('screen-login');
+    // Try offline fallback
+    const cached = loadCachedUser(name.trim());
+    if (cached) {
+      currentUser = { name: name.trim(), is_new: false, stats: {}, recent_sessions: [] };
+      prog        = cached.progress  || {};
+      bookmarks   = new Set(cached.bookmarks || []);
+      pendingSync = {};
+      isOffline   = true;
+      toast('📴 Offline — using cached progress', 3500);
+      renderHome();
+    } else {
+      toast('No connection and no cached data for this name.');
+      showScreen('screen-login');
+    }
   }
 }
 
@@ -1316,6 +1384,22 @@ async function init() {
 }
 
 init();
+
+// ── SERVICE WORKER REGISTRATION ──
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .catch(e => console.warn('SW registration failed:', e));
+  });
+}
+
+// ── RE-SYNC WHEN BACK ONLINE ──
+window.addEventListener('online', () => {
+  if (currentUser && isOffline) {
+    toast('🟢 Back online — syncing…', 2000);
+    flushProgress();
+  }
+});
 </script>
 </body>
 </html>
