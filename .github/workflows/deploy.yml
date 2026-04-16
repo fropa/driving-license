@@ -17,6 +17,9 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
+            if [ ! -d /opt/driving/.git ]; then
+              git clone https://github.com/fropa/driving-license.git /opt/driving
+            fi
             cd /opt/driving
             git pull origin main
             cp .env.production .env
