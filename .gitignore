@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 debug_api.json
 debug_page.html
+.env
+

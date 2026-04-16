@@ -14,6 +14,7 @@ app = Flask(__name__)
 BASE = Path(__file__).parent
 DATA = Path(os.environ.get("DATA_DIR", BASE / "data"))
 STATIC = BASE / "static"
+APP_BASE = os.environ.get("APP_BASE", "/").rstrip("/") + "/"  # e.g. "/driving/" or "/"
 DATA.mkdir(parents=True, exist_ok=True)
 
 
@@ -94,7 +95,12 @@ def no_cache(r):
 
 @app.route("/")
 def index():
-    return send_from_directory(BASE, "study.html")
+    if APP_BASE == "/":
+        return send_from_directory(BASE, "study.html")
+    # Inject <base href> so relative paths resolve under the subpath
+    html = (BASE / "study.html").read_text("utf-8")
+    html = html.replace("<head>", f'<head><base href="{APP_BASE}">', 1)
+    return html, 200, {"Content-Type": "text/html; charset=utf-8"}
 
 @app.route("/tickets.json")
 def tickets():

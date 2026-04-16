@@ -2,9 +2,13 @@ services:
   gru:
     build: .
     ports:
-      - "8080:8080"
+      - "${BIND_HOST:-0.0.0.0}:${HOST_PORT:-8080}:8080"
     volumes:
       - gru-data:/app/data
+    environment:
+      - DATA_DIR=/app/data
+      - PORT=8080
+      - APP_BASE=${APP_BASE:-/}
     restart: unless-stopped
 
 volumes:

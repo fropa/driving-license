@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -7,80 +7,191 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
+/* ══════════════════════════════════════════
+   TOKENS  —  dark (default)
+══════════════════════════════════════════ */
 :root{
-  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;
-  --border:#30363d;--text:#e6edf3;--sub:#8b949e;
-  --accent:#58a6ff;--green:#3fb950;--red:#f85149;--yellow:#d29922;
+  --bg:#0d1117;
+  --bg2:#161b22;
+  --bg3:#21262d;
+  --border:#30363d;
+  --text:#e6edf3;
+  --sub:#8b949e;
+  --accent:#58a6ff;
+  --accent-dim:rgba(88,166,255,.12);
+  --green:#3fb950;
+  --green-dim:rgba(63,185,80,.12);
+  --red:#f85149;
+  --red-dim:rgba(248,81,73,.12);
+  --yellow:#d29922;
+  --yellow-dim:rgba(210,153,34,.12);
+  --shadow:rgba(0,0,0,.4);
   --r:12px;
 }
 
-body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,'Segoe UI',sans-serif;min-height:100vh}
+/* ══════════════════════════════════════════
+   TOKENS  —  light
+══════════════════════════════════════════ */
+html[data-theme="light"]{
+  --bg:#f6f8fa;
+  --bg2:#ffffff;
+  --bg3:#eaeef2;
+  --border:#d0d7de;
+  --text:#1f2328;
+  --sub:#57606a;
+  --accent:#0969da;
+  --accent-dim:rgba(9,105,218,.1);
+  --green:#1a7f37;
+  --green-dim:rgba(26,127,55,.1);
+  --red:#cf222e;
+  --red-dim:rgba(207,34,46,.1);
+  --yellow:#7d4e00;
+  --yellow-dim:rgba(125,78,0,.1);
+  --shadow:rgba(0,0,0,.08);
+  --r:12px;
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+body{
+  background:var(--bg);color:var(--text);
+  font-family:system-ui,-apple-system,'Segoe UI',sans-serif;
+  min-height:100vh;
+  transition:background-color .22s ease,color .22s ease;
+}
+
+/* smooth colour transitions on key containers */
+.card,.q-card,.stat-box,.user-card,.ch-pill,.ans-btn,
+.hint-box,.weak-bar-bg,.welcome-card,.last-session-card,
+.login-box input,.summary-hero,.wrong-ticket,#toast{
+  transition:background-color .22s ease,border-color .22s ease,color .22s ease;
+}
 
 .screen{display:none}
 .screen.active{display:block}
 
-/* ── LOADING ── */
+/* ══════════════════════════════════════════
+   THEME TOGGLE BUTTON
+══════════════════════════════════════════ */
+#theme-btn{
+  position:fixed;top:12px;right:12px;z-index:200;
+  width:38px;height:38px;border-radius:50%;
+  border:1.5px solid var(--border);
+  background:var(--bg2);color:var(--text);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:background .22s,border-color .22s,transform .15s,box-shadow .22s;
+  box-shadow:0 2px 10px var(--shadow);
+  padding:0;
+}
+#theme-btn:hover{border-color:var(--accent);transform:scale(1.1);box-shadow:0 4px 16px var(--shadow)}
+#theme-btn:active{transform:scale(.96)}
+#theme-btn svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:opacity .2s,transform .3s}
+#theme-btn .icon-sun{display:none}
+#theme-btn .icon-moon{display:block}
+html[data-theme="light"] #theme-btn .icon-sun{display:block}
+html[data-theme="light"] #theme-btn .icon-moon{display:none}
+
+/* ══════════════════════════════════════════
+   LOADING
+══════════════════════════════════════════ */
 #screen-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;gap:16px;color:var(--sub)}
 .spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .75s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* ── LAYOUT ── */
+/* ══════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════ */
 .wrap{max-width:760px;margin:0 auto;padding:24px 16px}
 
-/* ── BUTTONS ── */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 22px;border:1px solid transparent;border-radius:var(--r);cursor:pointer;font-size:.95rem;font-weight:600;transition:filter .12s,transform .1s;user-select:none}
-.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
-.btn:active{transform:translateY(0)}
-.btn-primary{background:var(--accent);color:#000;border-color:var(--accent)}
+/* ══════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:11px 22px;border:1px solid transparent;border-radius:var(--r);
+  cursor:pointer;font-size:.95rem;font-weight:600;
+  transition:filter .12s,transform .1s,background-color .22s,border-color .22s,color .22s;
+  user-select:none;
+}
+.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn:active{transform:translateY(0);filter:brightness(.95)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+html[data-theme="light"] .btn-primary{color:#fff}
 .btn-ghost{background:transparent;color:var(--text);border-color:var(--border)}
-.btn-ghost:hover{background:var(--bg3)}
+.btn-ghost:hover{background:var(--bg3);filter:none}
 .btn-danger{background:transparent;color:var(--red);border-color:var(--red)}
-.btn-success{background:var(--green);color:#000}
+.btn-danger:hover{background:var(--red-dim);filter:none}
+.btn-success{background:var(--green);color:#fff}
 .btn-wide{width:100%;padding:14px 22px;font-size:1rem}
 .btn:disabled{opacity:.4;pointer-events:none}
 
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:20px 24px}
+/* ══════════════════════════════════════════
+   CARD
+══════════════════════════════════════════ */
+.card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:20px 24px;
+  box-shadow:0 1px 3px var(--shadow);
+}
 
-/* ── LOGIN ── */
+/* ══════════════════════════════════════════
+   LOGIN
+══════════════════════════════════════════ */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
 .login-box{width:100%;max-width:420px}
 .login-hero{text-align:center;margin-bottom:32px}
-.login-hero .icon{font-size:3.5rem;margin-bottom:12px}
-.login-hero h1{font-size:1.9rem;font-weight:800}
-.login-hero p{color:var(--sub);margin-top:6px}
+.login-hero .icon{font-size:3.5rem;margin-bottom:12px;display:block}
+.login-hero h1{font-size:1.9rem;font-weight:800;letter-spacing:-.02em}
+.login-hero p{color:var(--sub);margin-top:6px;font-size:.92rem}
 
 .input-wrap{position:relative;margin-bottom:14px}
 .input-wrap input{
-  width:100%;padding:14px 16px;background:var(--bg2);
-  border:2px solid var(--border);border-radius:var(--r);
+  width:100%;padding:14px 16px;
+  background:var(--bg2);border:2px solid var(--border);border-radius:var(--r);
   color:var(--text);font-size:1.05rem;outline:none;
-  transition:border-color .15s;
+  transition:border-color .15s,background .22s,color .22s;
 }
 .input-wrap input:focus{border-color:var(--accent)}
 .input-wrap input::placeholder{color:var(--sub)}
 
-.divider{text-align:center;color:var(--sub);font-size:.8rem;margin:20px 0;position:relative}
-.divider::before,.divider::after{content:'';position:absolute;top:50%;width:42%;height:1px;background:var(--border)}
+.divider{
+  text-align:center;color:var(--sub);font-size:.8rem;
+  margin:20px 0;position:relative;
+}
+.divider::before,.divider::after{
+  content:'';position:absolute;top:50%;width:42%;height:1px;
+  background:var(--border);
+}
 .divider::before{left:0}.divider::after{right:0}
 
 .user-list{display:flex;flex-direction:column;gap:8px;max-height:220px;overflow-y:auto}
 .user-card{
   display:flex;align-items:center;gap:12px;padding:12px 14px;
   background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
-  cursor:pointer;transition:border-color .13s;
+  cursor:pointer;transition:border-color .13s,background .13s;
+  box-shadow:0 1px 2px var(--shadow);
 }
-.user-card:hover{border-color:var(--accent)}
-.user-avatar{width:38px;height:38px;border-radius:50%;background:var(--bg3);
-  display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.user-card:hover{border-color:var(--accent);background:var(--bg3)}
+.user-avatar{
+  width:38px;height:38px;border-radius:50%;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;flex-shrink:0;
+  transition:background .22s;
+}
 .user-info{flex:1;min-width:0}
 .user-name{font-weight:600;font-size:.95rem}
 .user-meta{font-size:.75rem;color:var(--sub);margin-top:2px}
-.user-badge{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:20px;
-  background:rgba(88,166,255,.15);color:var(--accent)}
+.user-badge{
+  font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:20px;
+  background:var(--accent-dim);color:var(--accent);white-space:nowrap;
+}
 
-/* ── HOME ── */
+/* ══════════════════════════════════════════
+   HOME
+══════════════════════════════════════════ */
 .home-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px}
-.home-title h1{font-size:1.5rem;font-weight:800}
+.home-title h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
 .home-title p{color:var(--sub);font-size:.85rem;margin-top:2px}
 .logout-btn{font-size:.8rem;padding:6px 12px;color:var(--sub);border-color:var(--border)}
 
@@ -89,109 +200,185 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
 .welcome-card p{font-size:.88rem;color:var(--sub);line-height:1.6}
 
 .last-session-card{margin-bottom:20px;border-left:4px solid var(--yellow)}
-.last-session-card h3{font-size:.85rem;font-weight:700;color:var(--yellow);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.last-session-card h3{
+  font-size:.8rem;font-weight:700;color:var(--yellow);
+  margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;
+}
 
 .stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
 @media(max-width:520px){.stat-row{grid-template-columns:repeat(2,1fr)}}
-.stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;text-align:center}
-.stat-box .num{font-size:1.9rem;font-weight:800;line-height:1.1}
-.stat-box .lbl{font-size:.7rem;color:var(--sub);margin-top:4px;text-transform:uppercase;letter-spacing:.04em}
+.stat-box{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:16px 12px;text-align:center;box-shadow:0 1px 3px var(--shadow);
+}
+.stat-box .num{font-size:2rem;font-weight:800;line-height:1.1;letter-spacing:-.03em}
+.stat-box .lbl{font-size:.7rem;color:var(--sub);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
 
-.section-label{font-size:.72rem;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px}
+.section-label{
+  font-size:.72rem;font-weight:700;color:var(--sub);
+  text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;
+}
 
 .ch-grid{display:flex;flex-wrap:wrap;gap:7px;max-height:260px;overflow-y:auto;padding:2px}
-.ch-pill{padding:5px 11px;border:1px solid var(--border);border-radius:20px;background:var(--bg3);
-  color:var(--text);cursor:pointer;font-size:.82rem;transition:all .13s;white-space:nowrap}
-.ch-pill:hover{border-color:var(--accent);color:var(--accent)}
-.ch-pill.on{background:var(--accent);color:#000;border-color:var(--accent);font-weight:600}
+.ch-pill{
+  padding:5px 12px;border:1.5px solid var(--border);border-radius:20px;
+  background:var(--bg3);color:var(--text);cursor:pointer;
+  font-size:.82rem;white-space:nowrap;
+  transition:all .13s;
+}
+.ch-pill:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.ch-pill.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600}
+html[data-theme="light"] .ch-pill.on{color:#fff}
 
 .weak-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
 .weak-row:last-child{border:none}
 .weak-row .wname{font-size:.84rem;flex:0 0 160px}
 .weak-bar-bg{flex:1;height:7px;background:var(--bg3);border-radius:4px;overflow:hidden}
-.weak-bar{height:100%;border-radius:4px;background:var(--red)}
+.weak-bar{height:100%;border-radius:4px;background:var(--red);transition:width .4s ease}
 .weak-pct{font-size:.8rem;color:var(--sub);min-width:44px;text-align:right}
 
-/* ── SESSION ── */
+/* ══════════════════════════════════════════
+   SESSION
+══════════════════════════════════════════ */
 .sess-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
 .sess-label{font-size:.85rem;color:var(--sub);font-weight:600}
 .sess-chapter{font-size:.75rem;color:var(--accent);margin-top:2px}
 .sess-dots{display:flex;gap:5px;align-items:center}
-.sdot{width:9px;height:9px;border-radius:50%;background:var(--border);transition:background .2s}
-.sdot.ok{background:var(--green)}.sdot.err{background:var(--red)}
+.sdot{
+  width:9px;height:9px;border-radius:50%;background:var(--border);
+  transition:background .2s,transform .15s;
+}
+.sdot.ok{background:var(--green)}
+.sdot.err{background:var(--red);transform:scale(1.2)}
 
 .progress-rail{height:5px;background:var(--bg3);border-radius:3px;margin-bottom:20px;overflow:hidden}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .35s ease}
 
-.q-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:14px}
+.q-card{
+  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
+  padding:24px;margin-bottom:14px;box-shadow:0 1px 4px var(--shadow);
+}
 .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .q-chapter-tag{font-size:.72rem;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
-.difficulty-tag{font-size:.72rem;font-weight:700;padding:2px 8px;border-radius:20px}
-.diff-easy{background:rgba(63,185,80,.15);color:var(--green)}
-.diff-medium{background:rgba(210,153,34,.15);color:var(--yellow)}
-.diff-hard{background:rgba(248,81,73,.15);color:var(--red)}
-.diff-new{background:rgba(88,166,255,.15);color:var(--accent)}
+.difficulty-tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px}
+.diff-easy  {background:var(--green-dim);color:var(--green)}
+.diff-medium{background:var(--yellow-dim);color:var(--yellow)}
+.diff-hard  {background:var(--red-dim);color:var(--red)}
+.diff-new   {background:var(--accent-dim);color:var(--accent)}
 
 .q-img{width:100%;max-height:230px;object-fit:contain;border-radius:8px;margin-bottom:14px;display:none}
-.q-text{font-size:1.1rem;line-height:1.6;font-weight:500}
+
+.q-text{font-size:1.1rem;line-height:1.65;font-weight:500}
 
 .ans-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
 @media(max-width:500px){.ans-grid{grid-template-columns:1fr}}
-.ans-btn{padding:13px 15px;border:2px solid var(--border);border-radius:var(--r);
-  background:var(--bg2);color:var(--text);cursor:pointer;font-size:.92rem;
-  text-align:left;line-height:1.45;transition:border-color .12s,background .12s,opacity .15s}
-.ans-btn:hover:not(:disabled){border-color:var(--accent);background:var(--bg3)}
+.ans-btn{
+  padding:13px 15px;border:2px solid var(--border);border-radius:var(--r);
+  background:var(--bg2);color:var(--text);cursor:pointer;
+  font-size:.92rem;text-align:left;line-height:1.45;
+  transition:border-color .12s,background .12s,opacity .15s,color .22s;
+}
+.ans-btn:hover:not(:disabled){
+  border-color:var(--accent);background:var(--accent-dim);
+}
 .ans-btn:disabled{cursor:default}
-.ans-btn.correct{border-color:var(--green)!important;background:rgba(63,185,80,.12)!important}
-.ans-btn.wrong{border-color:var(--red)!important;background:rgba(248,81,73,.12)!important}
-.ans-btn.dimmed{opacity:.3}
+.ans-btn.correct{border-color:var(--green)!important;background:var(--green-dim)!important}
+.ans-btn.wrong  {border-color:var(--red)!important;background:var(--red-dim)!important}
+.ans-btn.dimmed {opacity:.3}
 
-.hint-box{background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--yellow);
-  border-radius:var(--r);padding:14px 16px;margin-bottom:14px;font-size:.88rem;
-  color:var(--sub);line-height:1.65;display:none}
+.hint-box{
+  background:var(--bg3);border:1px solid var(--border);border-left:4px solid var(--yellow);
+  border-radius:var(--r);padding:14px 16px;margin-bottom:14px;
+  font-size:.88rem;color:var(--sub);line-height:1.65;display:none;
+}
 .hint-box.show{display:block}
 
 .sess-footer{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.retry-badge{font-size:.82rem;color:var(--red);background:rgba(248,81,73,.12);
-  padding:4px 10px;border-radius:20px;border:1px solid rgba(248,81,73,.3)}
+.retry-badge{
+  font-size:.82rem;color:var(--red);background:var(--red-dim);
+  padding:4px 10px;border-radius:20px;border:1px solid rgba(248,81,73,.3);
+}
 
-/* ── SUMMARY ── */
-.summary-hero{text-align:center;padding:28px 24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);margin-bottom:20px}
+/* ══════════════════════════════════════════
+   SUMMARY
+══════════════════════════════════════════ */
+.summary-hero{
+  text-align:center;padding:28px 24px;
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);margin-bottom:20px;
+  box-shadow:0 1px 4px var(--shadow);
+}
 .summary-emoji{font-size:3.5rem;margin-bottom:10px}
-.summary-hero h1{font-size:1.8rem;font-weight:800;margin-bottom:5px}
+.summary-hero h1{font-size:1.8rem;font-weight:800;margin-bottom:5px;letter-spacing:-.02em}
 .summary-hero p{color:var(--sub);font-size:.9rem}
 .score-row{display:flex;justify-content:center;gap:32px;margin-top:20px;flex-wrap:wrap}
-.sc .n{font-size:2.3rem;font-weight:800}
+.sc .n{font-size:2.3rem;font-weight:800;letter-spacing:-.03em}
 .sc .l{font-size:.72rem;color:var(--sub);text-transform:uppercase;letter-spacing:.04em;margin-top:2px}
 
-.wrong-ticket{background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--red);
-  border-radius:var(--r);padding:12px 16px;margin-bottom:8px}
+.wrong-ticket{
+  background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--red);
+  border-radius:var(--r);padding:12px 16px;margin-bottom:8px;
+  box-shadow:0 1px 2px var(--shadow);
+}
 .wrong-ticket .wq{font-size:.9rem;margin-bottom:5px;font-weight:500}
 .wrong-ticket .wm{font-size:.78rem;color:var(--sub);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
 .badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.72rem;font-weight:700}
-.badge-red{background:rgba(248,81,73,.18);color:var(--red)}
-.badge-green{background:rgba(63,185,80,.18);color:var(--green)}
-.badge-blue{background:rgba(88,166,255,.18);color:var(--accent)}
-.badge-yellow{background:rgba(210,153,34,.18);color:var(--yellow)}
+.badge-red   {background:var(--red-dim);color:var(--red)}
+.badge-green {background:var(--green-dim);color:var(--green)}
+.badge-blue  {background:var(--accent-dim);color:var(--accent)}
+.badge-yellow{background:var(--yellow-dim);color:var(--yellow)}
 
 .sum-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}
 .sum-actions .btn{flex:1;min-width:130px}
 
-/* ── TOAST ── */
-#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);
-  background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);
-  padding:10px 20px;font-size:.88rem;z-index:999;pointer-events:none;
-  transition:transform .25s;white-space:nowrap}
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toast{
+  position:fixed;bottom:20px;left:50%;
+  transform:translateX(-50%) translateY(80px);
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:var(--r);padding:10px 20px;
+  font-size:.88rem;z-index:999;pointer-events:none;
+  transition:transform .25s,background .22s,border-color .22s;
+  white-space:nowrap;box-shadow:0 4px 16px var(--shadow);
+}
 #toast.show{transform:translateX(-50%) translateY(0)}
 
-.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);display:inline-block;margin-left:6px;vertical-align:middle}
+/* ══════════════════════════════════════════
+   SYNC DOT
+══════════════════════════════════════════ */
+.sync-dot{
+  width:7px;height:7px;border-radius:50%;background:var(--green);
+  display:inline-block;margin-left:6px;vertical-align:middle;
+  transition:background .3s;
+}
 .sync-dot.syncing{background:var(--yellow);animation:pulse .8s ease infinite}
-.sync-dot.error{background:var(--red)}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.sync-dot.error  {background:var(--red)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 </style>
 </head>
 <body>
+
+<!-- ── THEME TOGGLE ── -->
+<button id="theme-btn" aria-label="Toggle light/dark mode" title="Toggle theme">
+  <!-- moon (shown in dark mode) -->
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>
+  <!-- sun (shown in light mode) -->
+  <svg class="icon-sun" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="5"/>
+    <line x1="12" y1="1"  x2="12" y2="3"/>
+    <line x1="12" y1="21" x2="12" y2="23"/>
+    <line x1="4.22"  y1="4.22"  x2="5.64"  y2="5.64"/>
+    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+    <line x1="1"  y1="12" x2="3"  y2="12"/>
+    <line x1="21" y1="12" x2="23" y2="12"/>
+    <line x1="4.22"  y1="19.78" x2="5.64"  y2="18.36"/>
+    <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"/>
+  </svg>
+</button>
+
 <div id="toast"></div>
 
 <!-- ── LOADING ── -->
@@ -205,7 +392,7 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
   <div class="login-wrap">
     <div class="login-box">
       <div class="login-hero">
-        <div class="icon">🚗</div>
+        <span class="icon">🚗</span>
         <h1>grU Trainer</h1>
         <p>B / B1 Driving Exam · Smart Flashcards</p>
       </div>
@@ -235,13 +422,11 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
       </div>
     </div>
 
-    <!-- returning user greeting -->
     <div class="card welcome-card" id="welcome-card" style="display:none">
       <h2 id="welcome-title"></h2>
       <p id="welcome-body"></p>
     </div>
 
-    <!-- last session recap -->
     <div class="card last-session-card" id="last-session-card" style="display:none">
       <h3>Last Session</h3>
       <div id="last-session-body" style="font-size:.88rem;color:var(--sub);line-height:1.7"></div>
@@ -332,6 +517,21 @@ body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,
 'use strict';
 
 // ═══════════════════════════════════════════════════════════
+//  THEME
+// ═══════════════════════════════════════════════════════════
+(function initTheme() {
+  const saved = localStorage.getItem('gru-theme');
+  const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.dataset.theme = saved || preferred;
+})();
+
+document.getElementById('theme-btn').addEventListener('click', () => {
+  const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('gru-theme', next);
+});
+
+// ═══════════════════════════════════════════════════════════
 //  DATA
 // ═══════════════════════════════════════════════════════════
 let CHAPTERS = [];
@@ -341,8 +541,8 @@ let TICKETS  = [];
 //  USER + SERVER SYNC
 // ═══════════════════════════════════════════════════════════
 let currentUser = null;
-let prog = {};          // ticketId(str) → SM-2 state — synced from server
-let pendingSync = {};   // updates not yet flushed to server
+let prog = {};
+let pendingSync = {};
 
 function setSyncStatus(state) {
   const dot = document.getElementById('sync-indicator');
@@ -375,24 +575,23 @@ async function flushProgress() {
   if (!currentUser || !Object.keys(pendingSync).length) return;
   setSyncStatus('syncing');
   try {
-    await apiPut('/api/progress', {name: currentUser.name, updates: pendingSync});
+    await apiPut('api/progress', {name: currentUser.name, updates: pendingSync});
     pendingSync = {};
     setSyncStatus('ok');
   } catch(e) {
     setSyncStatus('error');
-    // keep pendingSync for next flush
   }
 }
 
 async function saveSessionToServer(summary) {
-  await flushProgress();   // flush progress first
+  await flushProgress();
   try {
-    await apiPost('/api/session', {name: currentUser.name, summary});
-  } catch(e) { /* offline, ignore */ }
+    await apiPost('api/session', {name: currentUser.name, summary});
+  } catch(e) {}
 }
 
 // ═══════════════════════════════════════════════════════════
-//  SM-2  (quality-based — smarter than pass/fail)
+//  SM-2
 // ═══════════════════════════════════════════════════════════
 function tp(id) {
   const key = String(id);
@@ -400,16 +599,9 @@ function tp(id) {
   return prog[key];
 }
 
-/*
-  quality:
-    5 = correct first try (easy)
-    3 = correct after retry
-    0 = wrong (left in queue)
-*/
 function sm2Update(id, quality, chapterId) {
   const p = tp(id);
   const key = String(id);
-
   p.attempts++;
   p.lastSeen = Date.now();
   if (chapterId != null) p.chapter_id = chapterId;
@@ -420,21 +612,17 @@ function sm2Update(id, quality, chapterId) {
     if      (p.streak === 1) p.interval = 1;
     else if (p.streak === 2) p.interval = 6;
     else                     p.interval = Math.round(p.interval * p.ef);
-
-    // SM-2 EF update
     p.ef = Math.max(1.3, p.ef + 0.1 - (5-quality)*(0.08 + (5-quality)*0.02));
   } else {
-    p.streak = 0;
+    p.streak   = 0;
     p.interval = 1;
-    p.ef = Math.max(1.3, p.ef - 0.2);
+    p.ef       = Math.max(1.3, p.ef - 0.2);
   }
-
-  // queue for server sync
   pendingSync[key] = {...p};
 }
 
 // ═══════════════════════════════════════════════════════════
-//  CARD DIFFICULTY LABEL  (derived from SM-2 state)
+//  CARD DIFFICULTY
 // ═══════════════════════════════════════════════════════════
 function cardDifficulty(id) {
   const p = prog[String(id)];
@@ -446,40 +634,31 @@ function cardDifficulty(id) {
 }
 
 // ═══════════════════════════════════════════════════════════
-//  SESSION SELECTION  —  smart ordering
+//  SESSION SELECTION
 // ═══════════════════════════════════════════════════════════
 let chapFilter = new Set();
 
 function selectTickets() {
   const now = Date.now();
   const DAY = 86_400_000;
-
   let pool = chapFilter.size > 0
     ? TICKETS.filter(t => chapFilter.has(t.chapter_id))
     : TICKETS;
   if (!pool.length) pool = TICKETS;
-
-  // score each ticket: higher = show first in session
-  return pool.slice().sort((a, b) => {
-    return ticketPriority(b, now, DAY) - ticketPriority(a, now, DAY);
-  });
+  return pool.slice().sort((a, b) =>
+    ticketPriority(b, now, DAY) - ticketPriority(a, now, DAY)
+  );
 }
 
 function ticketPriority(t, now, DAY) {
   const p = prog[String(t.id)];
-  if (!p || p.attempts === 0) return 500 + Math.random()*50;   // new: medium
-
-  const errRate   = 1 - p.correct / p.attempts;
-  const ageDays   = (now - p.lastSeen) / DAY;
-  const overdue   = ageDays - p.interval;                       // positive = overdue
-
-  // struggling recently → highest priority
-  if (errRate > 0.5 && ageDays < 14)  return 900 + errRate*100;
-  // overdue → high priority, scaled by how overdue
-  if (overdue > 0)                     return 700 + overdue*20 + errRate*50;
-  // moderate difficulty
-  if (errRate > 0.3)                   return 400 + errRate*100;
-  // doing well, not due
+  if (!p || p.attempts === 0) return 500 + Math.random()*50;
+  const errRate = 1 - p.correct / p.attempts;
+  const ageDays = (now - p.lastSeen) / DAY;
+  const overdue = ageDays - p.interval;
+  if (errRate > 0.5 && ageDays < 14) return 900 + errRate*100;
+  if (overdue > 0)                   return 700 + overdue*20 + errRate*50;
+  if (errRate > 0.3)                 return 400 + errRate*100;
   return Math.max(0, 100 - p.streak*15 + Math.random()*20);
 }
 
@@ -549,17 +728,19 @@ function showScreen(id) {
   el.classList.add('active');
 }
 
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
 // ═══════════════════════════════════════════════════════════
 //  LOGIN SCREEN
 // ═══════════════════════════════════════════════════════════
 async function renderLogin() {
   showScreen('screen-login');
-
   try {
-    const users = await (await fetch('/api/users')).json();
+    const users = await (await fetch('api/users')).json();
     const list = document.getElementById('user-list');
     const div  = document.getElementById('users-divider');
-
     if (users.length > 0) {
       div.style.display = 'block';
       list.innerHTML = users.map(u => `
@@ -576,18 +757,14 @@ async function renderLogin() {
         </div>
       `).join('');
     }
-  } catch(e) { /* server might not be up yet */ }
-}
-
-function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  } catch(e) {}
 }
 
 async function loginAs(name) {
   if (!name.trim()) return;
   showScreen('screen-loading');
   try {
-    const data = await apiPost('/api/login', {name: name.trim()});
+    const data = await apiPost('api/login', {name: name.trim()});
     currentUser = data;
     prog = data.progress || {};
     pendingSync = {};
@@ -614,43 +791,38 @@ document.getElementById('login-input').addEventListener('keydown', e => {
 function renderHome() {
   const stats = currentUser.stats || {};
 
-  // Header
   document.getElementById('home-title-name').textContent = currentUser.name;
   document.getElementById('home-title-sub').textContent  = 'B / B1 · Smart Flashcards';
 
-  // Welcome card
   const wCard = document.getElementById('welcome-card');
   const wTitle = document.getElementById('welcome-title');
   const wBody  = document.getElementById('welcome-body');
 
+  wCard.style.display = 'block';
   if (currentUser.is_new) {
-    wCard.style.display = 'block';
-    wTitle.textContent  = `Welcome, ${currentUser.name}! 👋`;
-    wBody.textContent   = 'You have 921 tickets to master. Let\'s start — pick a chapter or go through everything!';
+    wTitle.textContent = `Welcome, ${currentUser.name}! 👋`;
+    wBody.textContent  = "You have 921 tickets to master. Let's start — pick a chapter or go through everything!";
   } else {
-    wCard.style.display = 'block';
     const due = stats.due || 0;
     const str = stats.struggling || 0;
     wTitle.textContent = `Welcome back, ${currentUser.name}! 👋`;
     const parts = [];
-    if (due > 0)  parts.push(`📅 ${due} tickets due for review`);
-    if (str > 0)  parts.push(`⚡ ${str} tickets need attention`);
-    if (!parts.length) parts.push('You\'re all caught up! Keep practicing to stay sharp.');
+    if (due > 0) parts.push(`📅 ${due} tickets due for review`);
+    if (str > 0) parts.push(`⚡ ${str} tickets need attention`);
+    if (!parts.length) parts.push("You're all caught up! Keep practicing to stay sharp.");
     wBody.textContent = parts.join('  ·  ');
   }
 
-  // Last session recap
   const ls = currentUser.stats?.last_session;
   const lsCard = document.getElementById('last-session-card');
   if (ls) {
     lsCard.style.display = 'block';
-    const pct = ls.total ? Math.round(ls.firstTryOk / ls.total * 100) : 0;
+    const pct   = ls.total ? Math.round(ls.firstTryOk / ls.total * 100) : 0;
     const chaps = ls.chapters ? ls.chapters.join(', ') : 'All chapters';
     document.getElementById('last-session-body').innerHTML =
       `${relativeTime(ls.date)} &nbsp;·&nbsp; ` +
       `<strong>${ls.firstTryOk}/${ls.total}</strong> correct first try (${pct}%) &nbsp;·&nbsp; ` +
-      `${ls.passes} pass${ls.passes===1?'':'es'} &nbsp;·&nbsp; ` +
-      `Chapters: ${chaps}` +
+      `${ls.passes} pass${ls.passes===1?'':'es'} &nbsp;·&nbsp; Chapters: ${chaps}` +
       (ls.struggled_count > 0
         ? `<br>⚠️ Struggled with <strong>${ls.struggled_count}</strong> ticket${ls.struggled_count===1?'':'s'}`
         : ' &nbsp;·&nbsp; ✅ Zero struggles!');
@@ -669,7 +841,6 @@ function renderStats(stats) {
   const mastered = stats?.mastered ?? 0;
   const due      = stats?.due      ?? 0;
   const newT     = TICKETS.length - seen;
-
   document.getElementById('stat-row').innerHTML = `
     <div class="stat-box"><div class="num" style="color:var(--sub)">${newT}</div><div class="lbl">New</div></div>
     <div class="stat-box"><div class="num" style="color:var(--yellow)">${due}</div><div class="lbl">Due</div></div>
@@ -689,15 +860,12 @@ function renderChapters() {
   CHAPTERS.forEach(ch => {
     const chTickets = TICKETS.filter(t => t.chapter_id === ch.chapter_id);
     if (!chTickets.length) return;
-
     const seen = chTickets.filter(t => prog[String(t.id)]?.attempts > 0);
     let label  = `${ch.chapter_id}. ${ch.chapter_title} (${chTickets.length})`;
-
     if (seen.length > 0) {
       const errRate = seen.reduce((s,t) => s + (1 - (prog[String(t.id)]?.correct||0)/(prog[String(t.id)]?.attempts||1)), 0) / seen.length;
       label += errRate > 0.4 ? ' 🔴' : errRate > 0.2 ? ' 🟡' : ' 🟢';
     }
-
     grid.appendChild(mkPill(label, chapFilter.has(ch.chapter_id), false, () => {
       if (chapFilter.has(ch.chapter_id)) chapFilter.delete(ch.chapter_id);
       else chapFilter.add(ch.chapter_id);
@@ -705,7 +873,6 @@ function renderChapters() {
     }));
   });
 
-  // selection label
   const selLabel = document.getElementById('ch-selection-label');
   if (chapFilter.size === 0) {
     selLabel.textContent = 'All chapters';
@@ -714,7 +881,6 @@ function renderChapters() {
     selLabel.textContent = `${chapFilter.size} chapter${chapFilter.size>1?'s':''} · ${total} tickets`;
   }
 
-  // start button
   const btn = document.getElementById('btn-start');
   if (chapFilter.size === 0) {
     btn.textContent = `▶ Start Smart Session — All (${TICKETS.length} tickets)`;
@@ -755,12 +921,10 @@ function renderWeak(stats) {
 // ═══════════════════════════════════════════════════════════
 function startSession(tickets) {
   S = makeSession(tickets);
-
   const lbl = document.getElementById('sess-chapter-label');
-  if (chapFilter.size === 0)   lbl.textContent = 'All chapters — smart order';
-  else if (chapFilter.size===1) lbl.textContent = `Chapter ${[...chapFilter][0]}: ${chTitle([...chapFilter][0])}`;
-  else                          lbl.textContent = `${chapFilter.size} chapters selected`;
-
+  if      (chapFilter.size === 0) lbl.textContent = 'All chapters — smart order';
+  else if (chapFilter.size === 1) lbl.textContent = `Chapter ${[...chapFilter][0]}: ${chTitle([...chapFilter][0])}`;
+  else                            lbl.textContent = `${chapFilter.size} chapters selected`;
   showScreen('screen-session');
   renderCard();
 }
@@ -768,38 +932,31 @@ function startSession(tickets) {
 function renderCard() {
   if (!S.queue.length) { endSession(); return; }
 
-  const t = S.queue[0];
+  const t      = S.queue[0];
   const inQueue = new Set(S.queue.map(x => x.id));
-  const done = S.deck.filter(x => !inQueue.has(x.id)).length;
+  const done   = S.deck.filter(x => !inQueue.has(x.id)).length;
+
   document.getElementById('prog-fill').style.width = `${(done/S.deckSize)*100}%`;
   document.getElementById('sess-label').textContent = `${S.queue.length} left`;
-
-  // dots
   document.getElementById('sess-dots').innerHTML =
     S.history.slice(-8).map(ok => `<div class="sdot ${ok?'ok':'err'}"></div>`).join('');
 
-  // retry badge
   const st = S.states.get(t.id);
   document.getElementById('retry-badge-wrap').innerHTML =
     st?.wrongCount > 0 ? `<span class="retry-badge">⚡ Retry #${st.wrongCount+1}</span>` : '';
 
-  // chapter + difficulty
-  document.getElementById('q-chapter').textContent =
-    `${t.chapter_id}. ${chTitle(t.chapter_id)}`;
+  document.getElementById('q-chapter').textContent = `${t.chapter_id}. ${chTitle(t.chapter_id)}`;
   const diff = cardDifficulty(t.id);
   const diffEl = document.getElementById('q-difficulty');
   diffEl.textContent = diff.label;
-  diffEl.className = `difficulty-tag ${diff.cls}`;
+  diffEl.className   = `difficulty-tag ${diff.cls}`;
 
-  // image
   const img = document.getElementById('q-img');
   if (t.image_url) { img.src = t.image_url; img.style.display = 'block'; }
   else             { img.src = ''; img.style.display = 'none'; }
 
-  // question
   document.getElementById('q-text').textContent = t.question;
 
-  // shuffled answers
   const shuffled = shuffle(t.answers.map(a => ({...a})));
   const grid = document.getElementById('ans-grid');
   grid.innerHTML = '';
@@ -819,9 +976,9 @@ function renderCard() {
 function handleAnswer(clicked) {
   document.querySelectorAll('.ans-btn').forEach(b => {
     b.disabled = true;
-    if (b.dataset.correct === '1')   b.classList.add('correct');
-    else if (b === clicked)           b.classList.add('wrong');
-    else                              b.classList.add('dimmed');
+    if (b.dataset.correct === '1') b.classList.add('correct');
+    else if (b === clicked)        b.classList.add('wrong');
+    else                           b.classList.add('dimmed');
   });
 
   const t  = S.queue[0];
@@ -833,14 +990,11 @@ function handleAnswer(clicked) {
 
   S.history.push(ok);
 
-  // SM-2 quality: 5 = first try correct, 3 = retry correct, 0 = wrong
   const quality = !ok ? 0 : st.firstTryOk && st.wrongCount === 0 ? 5 : 3;
   sm2Update(t.id, quality, t.chapter_id);
 
-  // flush to server every 5 cards
   if (Object.keys(pendingSync).length >= 5) flushProgress();
 
-  // hint
   if (t.hint) {
     const hb = document.getElementById('hint-box');
     hb.textContent = t.hint;
@@ -859,15 +1013,11 @@ function handleAnswer(clicked) {
 }
 
 document.getElementById('btn-next').onclick = () => {
-  const t  = S.queue.shift();
-  const st = S.states.get(t.id);
+  const t      = S.queue.shift();
+  const st     = S.states.get(t.id);
   const lastOk = S.history[S.history.length-1];
 
   if (!lastOk) {
-    // Re-insert: sooner for more wrong answers
-    // wrong 1x → after 3 cards
-    // wrong 2x → after 1 card
-    // wrong 3x+ → right after next card
     const pos = st.wrongCount >= 3 ? 1 : st.wrongCount >= 2 ? 2 : 3;
     S.queue.splice(Math.min(pos, S.queue.length), 0, t);
   }
@@ -886,11 +1036,11 @@ document.getElementById('btn-next').onclick = () => {
 //  END SESSION
 // ═══════════════════════════════════════════════════════════
 async function endSession() {
-  const total       = S.deckSize;
-  const firstTryOk  = [...S.states.values()].filter(s => s.firstTryOk === true && s.wrongCount === 0).length;
-  const needed      = total - firstTryOk;
-  const pct         = Math.round(firstTryOk / total * 100);
-  const struggled   = S.deck.filter(t => S.states.get(t.id).wrongCount > 0);
+  const total      = S.deckSize;
+  const firstTryOk = [...S.states.values()].filter(s => s.firstTryOk === true && s.wrongCount === 0).length;
+  const needed     = total - firstTryOk;
+  const pct        = Math.round(firstTryOk / total * 100);
+  const struggled  = S.deck.filter(t => S.states.get(t.id).wrongCount > 0);
 
   let emoji, title;
   if      (pct===100) { emoji='🏆'; title='Perfect! Zero mistakes.'; }
@@ -925,20 +1075,17 @@ async function endSession() {
     document.getElementById('problem-section').style.display = 'none';
   }
 
-  // Save session summary to server
   const chapNames = chapFilter.size > 0
     ? [...chapFilter].map(id => `${id}. ${chTitle(id)}`)
     : ['All'];
   await saveSessionToServer({
     total, firstTryOk, passes: S.passNum,
-    score_pct: pct,
-    chapters: chapNames,
+    score_pct: pct, chapters: chapNames,
     struggled_count: struggled.length,
   });
 
-  // Re-fetch stats so home screen is up to date
   try {
-    const data = await apiPost('/api/login', {name: currentUser.name});
+    const data = await apiPost('api/login', {name: currentUser.name});
     currentUser = {...currentUser, stats: data.stats, is_new: false};
   } catch(e) {}
 
@@ -960,15 +1107,13 @@ document.getElementById('btn-logout').onclick = () => {
 document.getElementById('btn-reset').onclick = async () => {
   if (!confirm(`Reset ALL progress for ${currentUser.name}? This cannot be undone.`)) return;
   prog = {}; pendingSync = {};
-  await apiPut('/api/progress', {name: currentUser.name, updates: {}});
-  // clear via overwrite — send empty map
   try {
-    const r = await fetch('/api/progress', {
+    await fetch('api/progress', {
       method:'PUT',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({name: currentUser.name, updates: {}, _reset: true})
+      body: JSON.stringify({name: currentUser.name, updates:{}, _reset: true})
     });
-  } catch(e){}
+  } catch(e) {}
   toast('Progress reset.');
   renderHome();
 };
@@ -979,7 +1124,7 @@ document.getElementById('btn-reset').onclick = async () => {
 async function init() {
   showScreen('screen-loading');
   try {
-    const resp = await fetch('/tickets.json');
+    const resp = await fetch('tickets.json');
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data = await resp.json();
     CHAPTERS = data;
