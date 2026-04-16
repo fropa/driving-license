@@ -1011,8 +1011,8 @@ function handleAnswer(clicked) {
   sm2Update(t.id, quality, t.chapter_id);
   flushProgress();
 
-  // auto-show hint on wrong answer
-  if (!ok && t.hint) {
+  // show explanation after every answer (correct or wrong)
+  if (t.hint) {
     const hb = document.getElementById('hint-box');
     hb.textContent = t.hint;
     hb.classList.add('show');
