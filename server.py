@@ -4,7 +4,7 @@
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from pathlib import Path
 
 from flask import Flask, abort, jsonify, request, send_from_directory
@@ -14,7 +14,7 @@ app = Flask(__name__)
 BASE = Path(__file__).parent
 DATA = Path(os.environ.get("DATA_DIR", BASE / "data"))
 STATIC = BASE / "static"
-APP_BASE = os.environ.get("APP_BASE", "/").rstrip("/") + "/"  # e.g. "/driving/" or "/"
+APP_BASE = os.environ.get("APP_BASE", "/").rstrip("/") + "/"
 DATA.mkdir(parents=True, exist_ok=True)
 
 
@@ -33,15 +33,15 @@ def _load(name: str) -> dict:
     p = _path(name)
     if p.exists():
         return json.loads(p.read_text("utf-8"))
-    return {"name": name, "created": _now(), "progress": {}, "sessions": []}
+    return {"name": name, "created": _now(), "progress": {}, "sessions": [], "bookmarks": []}
 
 def _save(name: str, d: dict):
     _path(name).write_text(json.dumps(d, ensure_ascii=False, indent=2), "utf-8")
 
 def _compute_stats(d: dict) -> dict:
-    prog    = d.get("progress", {})
-    now_ms  = datetime.now().timestamp() * 1000
-    DAY_MS  = 86_400_000
+    prog   = d.get("progress", {})
+    now_ms = datetime.now().timestamp() * 1000
+    DAY_MS = 86_400_000
 
     seen       = sum(1 for v in prog.values() if v.get("attempts", 0) > 0)
     mastered   = sum(1 for v in prog.values() if v.get("streak", 0) >= 3)
@@ -54,6 +54,26 @@ def _compute_stats(d: dict) -> dict:
                      and v.get("lastSeen", 0) + v.get("interval", 0) * DAY_MS <= now_ms)
 
     sessions = d.get("sessions", [])
+
+    # daily streak — consecutive days with at least one session
+    today = date.today()
+    session_dates = sorted(
+        set(s.get("date", "")[:10] for s in sessions if s.get("date")),
+        reverse=True,
+    )
+    streak = 0
+    check  = today
+    for sd in session_dates:
+        if sd == check.isoformat():
+            streak += 1
+            check  -= timedelta(days=1)
+        elif sd < check.isoformat():
+            break
+
+    today_answered = sum(
+        s.get("total", 0) for s in sessions
+        if s.get("date", "").startswith(today.isoformat())
+    )
 
     # per-chapter error rates
     chapter_errors: dict[int, dict] = {}
@@ -77,13 +97,15 @@ def _compute_stats(d: dict) -> dict:
     )[:8]
 
     return {
-        "seen":          seen,
-        "mastered":      mastered,
-        "struggling":    struggling,
-        "due":           due,
+        "seen":           seen,
+        "mastered":       mastered,
+        "struggling":     struggling,
+        "due":            due,
+        "streak":         streak,
+        "today_answered": today_answered,
         "total_sessions": len(sessions),
-        "last_session":  sessions[-1] if sessions else None,
-        "weak_chapters": weak_chapters,
+        "last_session":   sessions[-1] if sessions else None,
+        "weak_chapters":  weak_chapters,
     }
 
 
@@ -98,7 +120,6 @@ def no_cache(r):
 def index():
     if APP_BASE == "/":
         return send_from_directory(BASE, "study.html")
-    # Inject <base href> so relative paths resolve under the subpath
     html = (BASE / "study.html").read_text("utf-8")
     html = html.replace("<head>", f'<head><base href="{APP_BASE}">', 1)
     return html, 200, {"Content-Type": "text/html; charset=utf-8"}
@@ -137,16 +158,18 @@ def login():
     if is_new:
         _save(name, d)
     return jsonify({
-        "name":     d["name"],
-        "is_new":   is_new,
-        "progress": d.get("progress", {}),
-        "stats":    _compute_stats(d),
+        "name":            d["name"],
+        "is_new":          is_new,
+        "progress":        d.get("progress", {}),
+        "bookmarks":       d.get("bookmarks", []),
+        "recent_sessions": d.get("sessions", [])[-30:],
+        "stats":           _compute_stats(d),
     })
 
 
 @app.route("/api/progress", methods=["PUT"])
 def update_progress():
-    body = request.get_json(silent=True) or {}
+    body    = request.get_json(silent=True) or {}
     name    = (body.get("name") or "").strip()
     updates = body.get("updates", {})
     if not name or not isinstance(updates, dict):
@@ -162,7 +185,7 @@ def update_progress():
 
 @app.route("/api/session", methods=["POST"])
 def save_session():
-    body = request.get_json(silent=True) or {}
+    body    = request.get_json(silent=True) or {}
     name    = (body.get("name") or "").strip()
     summary = body.get("summary", {})
     if not name:
@@ -173,6 +196,26 @@ def save_session():
     d["sessions"] = d["sessions"][-100:]
     _save(name, d)
     return jsonify({"ok": True})
+
+
+@app.route("/api/bookmark", methods=["POST"])
+def toggle_bookmark():
+    body      = request.get_json(silent=True) or {}
+    name      = (body.get("name") or "").strip()
+    ticket_id = body.get("ticket_id")
+    if not name or ticket_id is None:
+        abort(400)
+    d         = _load(name)
+    bookmarks = set(d.get("bookmarks", []))
+    if ticket_id in bookmarks:
+        bookmarks.discard(ticket_id)
+        added = False
+    else:
+        bookmarks.add(ticket_id)
+        added = True
+    d["bookmarks"] = sorted(bookmarks)
+    _save(name, d)
+    return jsonify({"ok": True, "bookmarked": added})
 
 
 # ── run ─────────────────────────────────────────────────────────────────────
