@@ -173,6 +173,8 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .diff-new{background:var(--accent-dim);color:var(--accent)}
 .q-img{width:100%;max-height:240px;object-fit:contain;border-radius:8px;margin-bottom:14px;display:none;cursor:zoom-in;transition:opacity .15s}
 .q-img:hover{opacity:.88}
+.extra-img-btn{margin-top:12px;background:none;border:1.5px dashed var(--border);border-radius:var(--r);padding:7px 16px;font-size:.82rem;color:var(--sub);cursor:pointer;transition:border-color .15s,color .15s;width:100%;text-align:center}
+.extra-img-btn:hover{border-color:var(--accent);color:var(--accent)}
 .q-text{font-size:1.1rem;line-height:1.65;font-weight:500}
 .bookmark-btn{position:absolute;top:14px;right:14px;background:none;border:none;cursor:pointer;font-size:1.3rem;opacity:.4;transition:opacity .15s,transform .15s;padding:2px}
 .bookmark-btn:hover{opacity:1;transform:scale(1.15)}
@@ -378,6 +380,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       </div>
       <img id="q-img" class="q-img" alt="" onerror="this.style.display='none'">
       <div class="q-text" id="q-text"></div>
+      <button id="btn-extra-img" class="extra-img-btn" style="display:none">📎 Additional photo</button>
     </div>
 
     <div class="ans-grid" id="ans-grid"></div>
@@ -1062,6 +1065,11 @@ function renderCard() {
   if (t.image_url) { img.src=t.image_url; img.style.display='block'; }
   else             { img.src=''; img.style.display='none'; }
 
+  // extra (additional) image
+  const extraBtn = document.getElementById('btn-extra-img');
+  if (t.extra_image_url) { extraBtn.dataset.src=t.extra_image_url; extraBtn.style.display='block'; }
+  else                   { extraBtn.dataset.src='';                 extraBtn.style.display='none'; }
+
   // question
   document.getElementById('q-text').textContent = t.question;
 
@@ -1257,18 +1265,25 @@ document.getElementById('btn-bookmark').onclick = async () => {
 // ══════════════════════════════════════════════════════
 //  IMAGE ZOOM
 // ══════════════════════════════════════════════════════
-document.getElementById('q-img').addEventListener('click', function() {
-  if (!this.src || this.style.display==='none') return;
+function openImgOverlay(src) {
+  if (!src) return;
   const overlay = document.createElement('div');
   overlay.className = 'img-overlay';
   const img = document.createElement('img');
-  img.src = this.src;
+  img.src = src;
   overlay.appendChild(img);
   overlay.onclick = () => overlay.remove();
   document.addEventListener('keydown', function esc(e) {
     if (e.key==='Escape') { overlay.remove(); document.removeEventListener('keydown',esc); }
   });
   document.body.appendChild(overlay);
+}
+document.getElementById('q-img').addEventListener('click', function() {
+  if (!this.src || this.style.display==='none') return;
+  openImgOverlay(this.src);
+});
+document.getElementById('btn-extra-img').addEventListener('click', function() {
+  openImgOverlay(this.dataset.src);
 });
 
 // ══════════════════════════════════════════════════════
