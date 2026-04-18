@@ -43,15 +43,23 @@ def _compute_stats(d: dict) -> dict:
     now_ms = datetime.now().timestamp() * 1000
     DAY_MS = 86_400_000
 
-    seen       = sum(1 for v in prog.values() if v.get("attempts", 0) > 0)
-    mastered   = sum(1 for v in prog.values() if v.get("streak", 0) >= 3)
-    struggling = sum(1 for v in prog.values()
-                     if v.get("attempts", 0) >= 2
-                     and v.get("correct", 0) / v["attempts"] < 0.6
-                     and v.get("streak", 0) < 3)
-    due        = sum(1 for v in prog.values()
-                     if v.get("attempts", 0) > 0
-                     and v.get("lastSeen", 0) + v.get("interval", 0) * DAY_MS <= now_ms)
+    # Mutually exclusive buckets (priority: mastered > struggling > due > learning)
+    seen = mastered = struggling = due = learning = 0
+    for v in prog.values():
+        if v.get("attempts", 0) == 0:
+            continue
+        seen += 1
+        streak   = v.get("streak", 0)
+        attempts = v.get("attempts", 0)
+        correct  = v.get("correct", 0)
+        if streak >= 3:
+            mastered += 1
+        elif attempts >= 2 and correct / attempts < 0.6:
+            struggling += 1
+        elif v.get("lastSeen", 0) + v.get("interval", 0) * DAY_MS <= now_ms:
+            due += 1
+        else:
+            learning += 1
 
     sessions = d.get("sessions", [])
 
@@ -101,6 +109,7 @@ def _compute_stats(d: dict) -> dict:
         "mastered":       mastered,
         "struggling":     struggling,
         "due":            due,
+        "learning":       learning,
         "streak":         streak,
         "today_answered": today_answered,
         "total_sessions": len(sessions),

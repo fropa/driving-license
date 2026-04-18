@@ -111,8 +111,8 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .welcome-card p{font-size:.88rem;color:var(--sub);line-height:1.6}
 .last-session-card{margin-bottom:20px;border-left:4px solid var(--yellow)}
 .last-session-card h3{font-size:.8rem;font-weight:700;color:var(--yellow);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
-.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
-@media(max-width:520px){.stat-row{grid-template-columns:repeat(2,1fr)}}
+.stat-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:520px){.stat-row{grid-template-columns:repeat(3,1fr)}}
 .stat-box{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px 12px;text-align:center;box-shadow:0 1px 3px var(--shadow)}
 .stat-box .num{font-size:2rem;font-weight:800;line-height:1.1;letter-spacing:-.03em}
 .stat-box .lbl{font-size:.7rem;color:var(--sub);margin-top:4px;text-transform:uppercase;letter-spacing:.06em}
@@ -858,12 +858,14 @@ function renderHome() {
 }
 
 function renderStats(stats) {
-  const seen    = stats?.seen     ?? 0;
-  const mastered= stats?.mastered ?? 0;
-  const due     = stats?.due      ?? 0;
-  const newT    = TICKETS.length - seen;
+  const seen     = stats?.seen      ?? 0;
+  const mastered = stats?.mastered  ?? 0;
+  const due      = stats?.due       ?? 0;
+  const learning = stats?.learning  ?? 0;
+  const newT     = TICKETS.length - seen;
   document.getElementById('stat-row').innerHTML = `
     <div class="stat-box"><div class="num" style="color:var(--sub)">${newT}</div><div class="lbl">New</div></div>
+    <div class="stat-box"><div class="num" style="color:var(--accent)">${learning}</div><div class="lbl">Learning</div></div>
     <div class="stat-box"><div class="num" style="color:var(--yellow)">${due}</div><div class="lbl">Due</div></div>
     <div class="stat-box"><div class="num" style="color:var(--red)">${stats?.struggling??0}</div><div class="lbl">Struggling</div></div>
     <div class="stat-box"><div class="num" style="color:var(--green)">${mastered}</div><div class="lbl">Mastered</div></div>
