@@ -157,6 +157,13 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .35s ease}
 .q-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:24px;margin-bottom:14px;box-shadow:0 1px 4px var(--shadow);position:relative}
 .q-meta{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.q-id-tag{font-size:.72rem;font-weight:700;font-family:monospace;padding:2px 8px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);color:var(--sub)}
+.find-ticket-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:10px 14px}
+.find-ticket-icon{font-size:1rem;flex-shrink:0}
+.find-ticket-input{flex:1;min-width:0;background:transparent;border:none;outline:none;font-size:.95rem;color:var(--fg);font-family:inherit}
+.find-ticket-input::placeholder{color:var(--sub)}
+.find-ticket-input::-webkit-inner-spin-button,.find-ticket-input::-webkit-outer-spin-button{-webkit-appearance:none}
+.find-ticket-btn{flex-shrink:0;padding:4px 14px;font-size:.85rem}
 .q-chapter-tag{font-size:.72rem;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .difficulty-tag{font-size:.72rem;font-weight:700;padding:2px 9px;border-radius:20px}
 .q-stats-tag{font-size:.72rem;color:var(--sub);padding:2px 9px;border-radius:20px;background:var(--bg3);border:1px solid var(--border);margin-left:auto}
@@ -318,6 +325,12 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       <button class="btn btn-ghost" id="btn-bookmarked" style="display:none">🔖 Train Bookmarked</button>
     </div>
 
+    <div class="find-ticket-row">
+      <span class="find-ticket-icon">🔍</span>
+      <input type="number" id="find-ticket-input" class="find-ticket-input" placeholder="Go to ticket #…" min="1" max="9999" autocomplete="off">
+      <button class="btn btn-ghost find-ticket-btn" id="btn-find-ticket">Go →</button>
+    </div>
+
     <div class="card" style="margin-bottom:18px">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
         <div class="section-label" style="margin:0">Chapter Filter</div>
@@ -358,6 +371,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
     <div class="q-card">
       <button class="bookmark-btn" id="btn-bookmark" title="Bookmark this ticket">🔖</button>
       <div class="q-meta">
+        <span class="q-id-tag" id="q-id"></span>
         <span class="q-chapter-tag" id="q-chapter"></span>
         <span class="difficulty-tag" id="q-difficulty"></span>
         <span class="q-stats-tag" id="q-stats" style="display:none"></span>
@@ -1022,7 +1036,8 @@ function renderCard() {
   document.getElementById('retry-badge-wrap').innerHTML =
     st?.wrongCount>0 ? `<span class="retry-badge">⚡ Retry #${st.wrongCount+1}</span>` : '';
 
-  // chapter + difficulty
+  // ticket id + chapter + difficulty
+  document.getElementById('q-id').textContent = `#${t.id}`;
   document.getElementById('q-chapter').textContent = `${t.chapter_id}. ${chTitle(t.chapter_id)}`;
   const diff   = cardDifficulty(t.id);
   const diffEl = document.getElementById('q-difficulty');
@@ -1257,9 +1272,36 @@ document.getElementById('q-img').addEventListener('click', function() {
 // ══════════════════════════════════════════════════════
 //  KEYBOARD SHORTCUTS
 // ══════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+//  FIND TICKET BY NUMBER
+// ══════════════════════════════════════════════════════
+function goToTicket() {
+  const input = document.getElementById('find-ticket-input');
+  const val   = parseInt(input.value, 10);
+  if (!val) { toast('Enter a ticket number'); return; }
+  const t = TICKETS.find(t => t.id === val);
+  if (!t) { toast(`Ticket #${val} not found`); return; }
+  input.value = '';
+  input.blur();
+  startSession([t], `🔍 Ticket #${val}`);
+}
+document.getElementById('btn-find-ticket').onclick = goToTicket;
+document.getElementById('find-ticket-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); goToTicket(); }
+  if (e.key === 'Escape') { e.preventDefault(); e.target.blur(); }
+});
+
 document.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT') return;
   const screen = document.querySelector('.screen.active')?.id;
+
+  // "/" on home screen → focus find input
+  if (screen === 'screen-home' && e.key === '/') {
+    e.preventDefault();
+    document.getElementById('find-ticket-input').focus();
+    return;
+  }
+
   if (screen !== 'screen-session') return;
 
   if (['1','2','3','4'].includes(e.key)) {
