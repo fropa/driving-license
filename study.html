@@ -571,6 +571,12 @@ function sm2Update(id, quality, chapterId) {
     p.interval = 1;
     p.ef       = Math.max(1.3, p.ef - 0.2);
   }
+  // Sticky struggling flag: set when accuracy is bad, only cleared by mastery
+  if (p.streak >= 3) {
+    p.struggling = false;
+  } else if (p.attempts >= 2 && (1 - p.correct / p.attempts) >= 0.4) {
+    p.struggling = true;
+  }
   pendingSync[key] = {...p};
 }
 
@@ -608,12 +614,12 @@ function ticketPriority(t, now, DAY) {
 function strugglingTickets() {
   return TICKETS.filter(t => {
     const p = prog[String(t.id)];
-    return p && p.attempts >= 2 && (1 - p.correct/p.attempts) >= 0.4 && p.streak < 3;
-  }).sort((a,b) => {
-    const ea = 1-(prog[String(a.id)].correct/prog[String(a.id)].attempts);
-    const eb = 1-(prog[String(b.id)].correct/prog[String(b.id)].attempts);
-    return eb - ea;
-  });
+    if (!p || p.streak >= 3) return false;
+    // Use persistent flag if set; fall back to accuracy check for older data
+    if (p.struggling === true)  return true;
+    if (p.struggling === false) return false;
+    return p.attempts >= 2 && (1 - p.correct / p.attempts) >= 0.4;
+  }).sort(() => Math.random() - 0.5);
 }
 function dueTickets() {
   const now = Date.now(), DAY = 86_400_000;

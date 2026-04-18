@@ -54,7 +54,10 @@ def _compute_stats(d: dict) -> dict:
         correct  = v.get("correct", 0)
         if streak >= 3:
             mastered += 1
-        elif attempts >= 2 and correct / attempts < 0.6:
+        elif (
+            v.get('struggling') is True or
+            (v.get('struggling') is None and attempts >= 2 and correct / attempts < 0.6)
+        ):
             struggling += 1
         elif v.get("lastSeen", 0) + v.get("interval", 0) * DAY_MS <= now_ms:
             due += 1
