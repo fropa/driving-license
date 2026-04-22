@@ -476,6 +476,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
     <div id="cheat-points"></div>
     <div class="cheat-actions">
       <button class="btn btn-ghost"   id="btn-cheat-home">🏠 მთავარი</button>
+      <button class="btn btn-ghost"   id="btn-cheat-skip">⏭ გამოტოვება</button>
       <button class="btn btn-primary" id="btn-cheat-start">▶ ვარჯიშის დაწყება</button>
     </div>
   </div>
@@ -1004,8 +1005,9 @@ function renderCheatsheet(chapterId) {
       <h3>${escHtml(p.heading || '')}</h3>
       <p>${escHtml(p.text || '')}</p>
     </div>`).join('');
-  // wire start button to chapter's session
+  // wire start button to chapter's session (also remembers so next time it auto-skips)
   document.getElementById('btn-cheat-start').onclick = () => {
+    try { localStorage.setItem(`gru-skip-cheat-${chapterId}`, '1'); } catch(e) {}
     chapFilter = new Set([chapterId]);
     startSession(selectTickets());
   };
@@ -1411,7 +1413,18 @@ document.addEventListener('keydown', e => {
 // ══════════════════════════════════════════════════════
 //  BUTTON WIRING
 // ══════════════════════════════════════════════════════
-document.getElementById('btn-start').onclick = () => startSession(selectTickets());
+document.getElementById('btn-start').onclick = () => {
+  // single chapter + cheatsheet exists + not already skipped → show cheatsheet first
+  if (chapFilter.size === 1) {
+    const id = [...chapFilter][0];
+    const skipKey = `gru-skip-cheat-${id}`;
+    if (CHEATSHEETS[String(id)] && !localStorage.getItem(skipKey)) {
+      renderCheatsheet(id);
+      return;
+    }
+  }
+  startSession(selectTickets());
+};
 document.getElementById('btn-new').onclick   = () => startSession(selectTickets());
 document.getElementById('btn-home').onclick  = () => renderHome();
 document.getElementById('btn-retry-wrongs').onclick = () => {
@@ -1457,6 +1470,15 @@ document.getElementById('btn-cheatsheet').onclick = () => {
 };
 document.getElementById('btn-cheat-back').onclick = () => renderHome();
 document.getElementById('btn-cheat-home').onclick = () => renderHome();
+document.getElementById('btn-cheat-skip').onclick = () => {
+  if (chapFilter.size === 1) {
+    const id = [...chapFilter][0];
+    try { localStorage.setItem(`gru-skip-cheat-${id}`, '1'); } catch(e) {}
+    startSession(selectTickets());
+  } else {
+    startSession(selectTickets());
+  }
+};
 
 document.getElementById('btn-logout').onclick = () => {
   stopExamTimer();
