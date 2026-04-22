@@ -225,6 +225,17 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .hist-label{font-size:.6rem;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-align:center}
 .hist-pct{font-size:.65rem;color:var(--sub);text-align:center}
 
+/* ── CHEATSHEET ── */
+.cheat-hero{text-align:center;margin-bottom:18px}
+.cheat-hero .icon{font-size:2.5rem;margin-bottom:6px;display:block}
+.cheat-hero h1{font-size:1.5rem;font-weight:800;letter-spacing:-.02em}
+.cheat-hero p{color:var(--sub);font-size:.88rem;margin-top:4px;line-height:1.55}
+.cheat-point{background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;box-shadow:0 1px 3px var(--shadow)}
+.cheat-point h3{font-size:.98rem;font-weight:700;margin-bottom:6px;color:var(--accent)}
+.cheat-point p{font-size:.9rem;line-height:1.6;color:var(--text)}
+.cheat-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.cheat-actions .btn{flex:1;min-width:140px}
+
 /* ── IMAGE OVERLAY ── */
 .img-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:500;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn .15s ease}
 .img-overlay img{max-width:95vw;max-height:92vh;object-fit:contain;border-radius:8px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
@@ -341,6 +352,7 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       <div class="ch-grid" id="ch-grid"></div>
     </div>
 
+    <button class="btn btn-ghost btn-wide" id="btn-cheatsheet" style="display:none;margin-bottom:8px">📖 გაკვეთილი — Cheatsheet</button>
     <button class="btn btn-primary btn-wide" id="btn-start">▶ Start Session</button>
 
     <div class="card" id="weak-card" style="margin-top:18px;display:none">
@@ -447,6 +459,28 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
   </div>
 </div>
 
+<!-- ── CHEATSHEET ── -->
+<div id="screen-cheatsheet" class="screen">
+  <div class="wrap">
+    <div class="home-header" style="margin-bottom:20px">
+      <div class="home-title">
+        <h1 id="cheat-chapter-num" style="font-size:1.2rem;color:var(--sub)"></h1>
+      </div>
+      <button class="btn btn-ghost logout-btn" id="btn-cheat-back">← უკან</button>
+    </div>
+    <div class="cheat-hero">
+      <span class="icon">📖</span>
+      <h1 id="cheat-title"></h1>
+      <p id="cheat-intro"></p>
+    </div>
+    <div id="cheat-points"></div>
+    <div class="cheat-actions">
+      <button class="btn btn-ghost"   id="btn-cheat-home">🏠 მთავარი</button>
+      <button class="btn btn-primary" id="btn-cheat-start">▶ ვარჯიშის დაწყება</button>
+    </div>
+  </div>
+</div>
+
 <script>
 'use strict';
 
@@ -467,8 +501,9 @@ document.getElementById('theme-btn').addEventListener('click', () => {
 // ══════════════════════════════════════════════════════
 //  DATA
 // ══════════════════════════════════════════════════════
-let CHAPTERS = [];
-let TICKETS  = [];
+let CHAPTERS    = [];
+let TICKETS     = [];
+let CHEATSHEETS = {};
 const DAILY_GOAL = 20;
 const EXAM_TOTAL = 30;
 const EXAM_PASS  = 24;   // ≥24/30 = 80%
@@ -936,14 +971,45 @@ function renderChapters() {
     sel.textContent = `${chapFilter.size} chapter${chapFilter.size>1?'s':''} · ${total} tickets`;
   }
   const btn = document.getElementById('btn-start');
+  const cheatBtn = document.getElementById('btn-cheatsheet');
   if (chapFilter.size===0) {
     btn.textContent = `▶ Start Smart Session — All (${TICKETS.length} tickets)`;
+    cheatBtn.style.display = 'none';
   } else if (chapFilter.size===1) {
     const id = [...chapFilter][0];
     btn.textContent = `▶ Start — ${chTitle(id)} (${TICKETS.filter(t=>t.chapter_id===id).length} tickets)`;
+    // show cheatsheet button only if cheatsheet exists for this chapter
+    cheatBtn.style.display = CHEATSHEETS[String(id)] ? 'inline-flex' : 'none';
+    if (CHEATSHEETS[String(id)]) {
+      cheatBtn.textContent = `📖 გაკვეთილი — ${chTitle(id)}`;
+    }
   } else {
     btn.textContent = `▶ Start — ${chapFilter.size} chapters (${TICKETS.filter(t=>chapFilter.has(t.chapter_id)).length} tickets)`;
+    cheatBtn.style.display = 'none';
   }
+}
+
+// ══════════════════════════════════════════════════════
+//  CHEATSHEET
+// ══════════════════════════════════════════════════════
+function renderCheatsheet(chapterId) {
+  const cs = CHEATSHEETS[String(chapterId)];
+  if (!cs) { toast('გაკვეთილი მიუწვდომელია'); return; }
+  document.getElementById('cheat-chapter-num').textContent = `თავი ${chapterId}`;
+  document.getElementById('cheat-title').textContent = cs.title || chTitle(chapterId);
+  document.getElementById('cheat-intro').textContent = cs.intro || '';
+  const wrap = document.getElementById('cheat-points');
+  wrap.innerHTML = (cs.points || []).map(p => `
+    <div class="cheat-point">
+      <h3>${escHtml(p.heading || '')}</h3>
+      <p>${escHtml(p.text || '')}</p>
+    </div>`).join('');
+  // wire start button to chapter's session
+  document.getElementById('btn-cheat-start').onclick = () => {
+    chapFilter = new Set([chapterId]);
+    startSession(selectTickets());
+  };
+  showScreen('screen-cheatsheet');
 }
 
 function mkPill(text, on, isAll, fn) {
@@ -1385,6 +1451,13 @@ document.getElementById('btn-bookmarked').onclick = () => {
 document.getElementById('btn-history').onclick  = () => renderHistory();
 document.getElementById('btn-hist-back').onclick = () => renderHome();
 
+document.getElementById('btn-cheatsheet').onclick = () => {
+  if (chapFilter.size !== 1) return;
+  renderCheatsheet([...chapFilter][0]);
+};
+document.getElementById('btn-cheat-back').onclick = () => renderHome();
+document.getElementById('btn-cheat-home').onclick = () => renderHome();
+
 document.getElementById('btn-logout').onclick = () => {
   stopExamTimer();
   currentUser = null; prog = {}; bookmarks = new Set(); pendingSync = {};
@@ -1430,6 +1503,11 @@ async function init() {
     const data = await resp.json();
     CHAPTERS = data;
     TICKETS  = [];
+    // cheatsheets optional — load in parallel, ignore failure
+    try {
+      const cResp = await fetch('cheatsheets.json');
+      if (cResp.ok) CHEATSHEETS = await cResp.json();
+    } catch(e) {}
     data.forEach(ch => ch.tickets.forEach(t =>
       TICKETS.push({...t, chapter_title: ch.chapter_title})
     ));

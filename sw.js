@@ -1,7 +1,7 @@
 'use strict';
 
-const CACHE = 'gru-trainer-v1';
-const PRECACHE = ['/study.html', '/tickets.json', '/manifest.json', '/icon.svg'];
+const CACHE = 'gru-trainer-v2';
+const PRECACHE = ['/study.html', '/tickets.json', '/cheatsheets.json', '/manifest.json', '/icon.svg'];
 
 // Install: pre-cache the app shell
 self.addEventListener('install', e => {
