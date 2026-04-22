@@ -332,6 +332,9 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       <button class="btn btn-exam" id="btn-exam">📝 Exam Simulation</button>
       <button class="btn btn-ghost" id="btn-history">📈 Session History</button>
     </div>
+    <div class="action-grid" style="margin-bottom:10px">
+      <button class="btn btn-ghost" id="btn-cheatsheet-list">📖 Cheatsheets</button>
+    </div>
     <div class="action-grid" style="margin-bottom:18px">
       <button class="btn btn-due" id="btn-due" style="display:none">📅 Review Due</button>
       <button class="btn btn-struggling" id="btn-struggling" style="display:none">⚡ Train Struggling</button>
@@ -456,6 +459,20 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
       <div class="section-label" style="margin-bottom:12px">All-time stats</div>
       <div id="hist-stats" style="font-size:.9rem;color:var(--sub);line-height:2"></div>
     </div>
+  </div>
+</div>
+
+<!-- ── CHEATSHEET LIST ── -->
+<div id="screen-cheatsheet-list" class="screen">
+  <div class="wrap">
+    <div class="home-header" style="margin-bottom:20px">
+      <div class="home-title">
+        <h1>📖 Cheatsheets</h1>
+        <p id="cheat-list-sub">აირჩიე თავი</p>
+      </div>
+      <button class="btn btn-ghost logout-btn" id="btn-cheat-list-back">← Back</button>
+    </div>
+    <div id="cheat-list-grid" style="display:flex;flex-direction:column;gap:8px"></div>
   </div>
 </div>
 
@@ -993,6 +1010,41 @@ function renderChapters() {
 // ══════════════════════════════════════════════════════
 //  CHEATSHEET
 // ══════════════════════════════════════════════════════
+function renderCheatsheetList() {
+  const grid = document.getElementById('cheat-list-grid');
+  const sub  = document.getElementById('cheat-list-sub');
+  const keys = Object.keys(CHEATSHEETS);
+  if (!keys.length) {
+    sub.textContent = '⚠ Cheatsheets not loaded';
+    grid.innerHTML = `<div class="card" style="padding:20px;text-align:center;color:var(--sub)">
+      გაკვეთილების ფაილი ვერ ჩაიტვირთა. სცადე გვერდის გადატვირთვა.
+    </div>`;
+    showScreen('screen-cheatsheet-list');
+    return;
+  }
+  sub.textContent = `${keys.length} თავი · აირჩიე`;
+  // sort by chapter_id numerically
+  const sorted = keys.map(Number).sort((a,b) => a-b);
+  grid.innerHTML = sorted.map(id => {
+    const cs    = CHEATSHEETS[String(id)];
+    const title = cs.title || chTitle(id);
+    const count = (cs.points || []).length;
+    const tcount = TICKETS.filter(t => t.chapter_id === id).length;
+    return `<div class="user-card" onclick="openCheatsheet(${id})">
+      <div class="user-avatar">📖</div>
+      <div class="user-info">
+        <div class="user-name">${id}. ${escHtml(title)}</div>
+        <div class="user-meta">${count} საკითხი · ${tcount} ბილეთი</div>
+      </div>
+    </div>`;
+  }).join('');
+  showScreen('screen-cheatsheet-list');
+}
+
+function openCheatsheet(id) {
+  renderCheatsheet(id);
+}
+
 function renderCheatsheet(chapterId) {
   const cs = CHEATSHEETS[String(chapterId)];
   if (!cs) { toast('გაკვეთილი მიუწვდომელია'); return; }
@@ -1468,7 +1520,9 @@ document.getElementById('btn-cheatsheet').onclick = () => {
   if (chapFilter.size !== 1) return;
   renderCheatsheet([...chapFilter][0]);
 };
-document.getElementById('btn-cheat-back').onclick = () => renderHome();
+document.getElementById('btn-cheatsheet-list').onclick = () => renderCheatsheetList();
+document.getElementById('btn-cheat-list-back').onclick = () => renderHome();
+document.getElementById('btn-cheat-back').onclick = () => renderCheatsheetList();
 document.getElementById('btn-cheat-home').onclick = () => renderHome();
 document.getElementById('btn-cheat-skip').onclick = () => {
   if (chapFilter.size === 1) {

@@ -5,7 +5,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY server.py tickets.json study.html ./
+COPY server.py tickets.json cheatsheets.json study.html sw.js manifest.json icon.svg ./
 COPY static/ ./static/
 
 RUN mkdir -p /app/data
