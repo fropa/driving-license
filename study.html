@@ -233,6 +233,9 @@ html[data-theme="light"] #theme-btn .icon-moon{display:none}
 .cheat-point{background:var(--bg2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:var(--r);padding:14px 18px;margin-bottom:10px;box-shadow:0 1px 3px var(--shadow)}
 .cheat-point h3{font-size:.98rem;font-weight:700;margin-bottom:6px;color:var(--accent)}
 .cheat-point p{font-size:.9rem;line-height:1.6;color:var(--text)}
+.cheat-point img{display:block;max-width:100%;max-height:200px;object-fit:contain;margin-top:10px;border-radius:8px;border:1px solid var(--border);background:var(--bg3);cursor:zoom-in;transition:opacity .15s}
+.cheat-point img:hover{opacity:.88}
+.cheat-code{display:inline-block;font-family:ui-monospace,SFMono-Regular,monospace;font-size:.72rem;color:var(--sub);background:var(--bg3);padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:middle}
 .cheat-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
 .cheat-actions .btn{flex:1;min-width:140px}
 
@@ -1052,11 +1055,15 @@ function renderCheatsheet(chapterId) {
   document.getElementById('cheat-title').textContent = cs.title || chTitle(chapterId);
   document.getElementById('cheat-intro').textContent = cs.intro || '';
   const wrap = document.getElementById('cheat-points');
-  wrap.innerHTML = (cs.points || []).map(p => `
-    <div class="cheat-point">
-      <h3>${escHtml(p.heading || '')}</h3>
+  wrap.innerHTML = (cs.points || []).map(p => {
+    const img  = p.image ? `<img src="${escHtml(p.image)}" alt="${escHtml(p.heading||'')}" loading="lazy" onclick="openImgOverlay(this.src)" onerror="this.style.display='none'">` : '';
+    const code = p.sign_code ? `<span class="cheat-code">${escHtml(p.sign_code)}</span>` : '';
+    return `<div class="cheat-point">
+      <h3>${escHtml(p.heading || '')}${code}</h3>
       <p>${escHtml(p.text || '')}</p>
-    </div>`).join('');
+      ${img}
+    </div>`;
+  }).join('');
   // wire start button to chapter's session (also remembers so next time it auto-skips)
   document.getElementById('btn-cheat-start').onclick = () => {
     try { localStorage.setItem(`gru-skip-cheat-${chapterId}`, '1'); } catch(e) {}
