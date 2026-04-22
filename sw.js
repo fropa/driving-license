@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE = 'gru-trainer-v2';
+const CACHE = 'gru-trainer-v3';
 const PRECACHE = ['/study.html', '/tickets.json', '/cheatsheets.json', '/manifest.json', '/icon.svg'];
 
 // Install: pre-cache the app shell

@@ -123,9 +123,16 @@ def _compute_stats(d: dict) -> dict:
 
 # ── static ──────────────────────────────────────────────────────────────────
 
+STATIC_PATHS = {"/tickets.json", "/cheatsheets.json", "/sw.js", "/manifest.json", "/icon.svg"}
+
 @app.after_request
-def no_cache(r):
-    r.headers["Cache-Control"] = "no-store, no-cache"
+def cache_policy(r):
+    p = request.path
+    # static assets cacheable (SW precache works); HTML + API stay fresh
+    if p in STATIC_PATHS or p.startswith("/static/"):
+        r.headers["Cache-Control"] = "public, max-age=300"
+    else:
+        r.headers["Cache-Control"] = "no-store, no-cache"
     return r
 
 @app.route("/")
@@ -139,6 +146,22 @@ def index():
 @app.route("/tickets.json")
 def tickets():
     return send_from_directory(BASE, "tickets.json")
+
+@app.route("/cheatsheets.json")
+def cheatsheets():
+    return send_from_directory(BASE, "cheatsheets.json")
+
+@app.route("/sw.js")
+def service_worker():
+    return send_from_directory(BASE, "sw.js", mimetype="application/javascript")
+
+@app.route("/manifest.json")
+def manifest():
+    return send_from_directory(BASE, "manifest.json")
+
+@app.route("/icon.svg")
+def icon():
+    return send_from_directory(BASE, "icon.svg", mimetype="image/svg+xml")
 
 @app.route("/static/img/<path:filename>")
 def static_img(filename):
